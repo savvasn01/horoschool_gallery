@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Интерактивная галерея</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+--accent:#7b61ff;
+--glass:rgba(255,255,255,0.18);
+--border:rgba(255,255,255,0.25);
+--text:#222;
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+transition:0.3s;
+}
+
+body{
+font-family:'Montserrat',sans-serif;
+min-height:100vh;
+overflow-x:hidden;
+color:var(--text);
+
+background-color:#eef2ff;
+
+background-image:
+radial-gradient(circle at top left,
+rgba(123,97,255,0.25),
+transparent 30%),
+
+radial-gradient(circle at bottom right,
+rgba(0,180,255,0.25),
+transparent 30%);
+}
+
+/* THEMES */
+
+body.theme-dark{
+
+background:#111 !important;
+
+background-image:none !important;
+
+color:white;
+
+}
+
+body.theme-ocean{
+background:linear-gradient(135deg,#6dd5fa,#2980b9) !important;
+background-image:none !important;
+}
+
+body.theme-neon{
+background:linear-gradient(135deg,#0f0c29,#302b63,#24243e) !important;
+background-image:none !important;
+color:white;
+}
+
+body.theme-sakura{
+background:linear-gradient(135deg,#ffd1dc,#ffe6f0) !important;
+background-image:none !important;
+}
+
+body.custom-background{
+background-size:cover;
+background-position:center;
+background-repeat:no-repeat;
+background-attachment:fixed;
+}
+
+/* GLASS */
+
+.glass{
+background:var(--glass);
+backdrop-filter:blur(18px) saturate(180%);
+border:1px solid var(--border);
+box-shadow:0 8px 32px rgba(31,38,135,0.15);
+}
+
+/* HEADER */
+
+header{
+text-align:center;
+padding:50px 20px 30px;
+}
+
+header h1{
+font-size:42px;
+background:linear-gradient(90deg,#6c4dff,#00bfff);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+/* MENU */
+
+#menuBtn{
+position:fixed;
+top:20px;
+right:20px;
+width:55px;
+height:55px;
+border-radius:16px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:28px;
+cursor:pointer;
+z-index:9999;
+}
+
+#menuPanel{
+position:fixed;
+top:90px;
+right:20px;
+display:none;
+flex-direction:column;
+gap:10px;
+z-index:9999;
+}
+
+#menuPanel button{
+width:220px;
+}
+
+/* GALLERY */
+
+.gallery{
+width:90%;
+max-width:1400px;
+margin:auto;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+gap:30px;
+padding-bottom:50px;
+}
+
+/* CARD */
+
+.card{
+position:relative;
+overflow:hidden;
+border-radius:24px;
+cursor:pointer;
+}
+
+.card:hover{
+transform:translateY(-10px) scale(1.03);
+}
+
+.card img{
+width:100%;
+height:320px;
+object-fit:cover;
+}
+
+.info{
+padding:20px;
+}
+
+.author{
+color:var(--accent);
+font-weight:600;
+}
+
+.class{
+opacity:0.7;
+margin-top:5px;
+}
+
+/* DELETE */
+
+.delete-btn{
+position:absolute;
+top:12px;
+right:12px;
+
+width:38px;
+height:38px;
+
+border:none;
+border-radius:50%;
+
+background:white;
+color:red;
+
+font-size:20px;
+
+cursor:pointer;
+
+display:none;
+}
+
+/* BUTTON */
+
+button{
+padding:12px 18px;
+border:none;
+border-radius:14px;
+
+color:white;
+font-weight:600;
+
+cursor:pointer;
+
+background:
+linear-gradient(
+135deg,
+rgba(123,97,255,0.9),
+rgba(0,180,255,0.8)
+);
+}
+
+/* INPUT */
+
+input,
+select{
+width:100%;
+margin-top:10px;
+padding:10px;
+
+border-radius:12px;
+
+border:1px solid rgba(255,255,255,0.35);
+
+background:rgba(255,255,255,0.25);
+
+outline:none;
+}
+
+/* MODAL */
+
+.modal{
+position:fixed;
+inset:0;
+
+background:rgba(0,0,0,0.7);
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+opacity:0;
+pointer-events:none;
+
+z-index:1000;
+}
+
+.modal.active{
+opacity:1;
+pointer-events:auto;
+}
+
+.modal-content{
+width:90%;
+max-width:900px;
+overflow:hidden;
+border-radius:24px;
+}
+
+.modal img{
+width:100%;
+max-height:550px;
+object-fit:cover;
+}
+
+.modal-info{
+padding:30px;
+}
+
+/* PANELS */
+
+.panel{
+position:fixed;
+padding:18px;
+border-radius:22px;
+z-index:500;
+cursor:move;
+}
+
+#adminPanel{
+top:20px;
+left:20px;
+width:260px;
+}
+
+#settingsPanel{
+bottom:20px;
+right:20px;
+width:280px;
+display:none;
+}
+
+#uploadPanel{
+bottom:20px;
+left:20px;
+width:280px;
+display:none;
+}
+
+#freeUploadPanel{
+top:320px;
+right:20px;
+width:260px;
+display:none;
+}
+
+/* FREE IMAGES */
+
+#freeImagesContainer{
+position:fixed;
+inset:0;
+pointer-events:none;
+}
+
+.free-image-wrapper{
+position:absolute;
+pointer-events:auto;
+}
+
+.free-image{
+width:220px;
+border-radius:22px;
+box-shadow:0 8px 30px rgba(0,0,0,0.18);
+}
+
+.resize-handle{
+width:20px;
+height:20px;
+background:white;
+border:2px solid black;
+position:absolute;
+right:-10px;
+bottom:-10px;
+cursor:nwse-resize;
+border-radius:50%;
+}
+
+@media(max-width:700px){
+
+.gallery{
+grid-template-columns:1fr;
+}
+
+.panel{
+width:90% !important;
+left:5% !important;
+right:auto !important;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- MENU -->
+
+<div id="menuBtn" class="glass">
+☰
+</div>
+
+<div id="menuPanel">
+
+<button id="openMain">
+Работы учеников
+</button>
+
+<button id="openWinners">
+Лучшие работы
+</button>
+
+</div>
+
+<!-- HEADER -->
+
+<header>
+
+<h1>
+Интерактивная галерея
+</h1>
+
+<p>
+Творческие работы учеников
+</p>
+
+</header>
+
+<!-- ADMIN -->
+
+<div id="adminPanel" class="panel glass draggable">
+
+<input
+type="password"
+id="adminPassword"
+placeholder="Пароль">
+
+<button id="loginBtn">
+Войти
+</button>
+
+<button
+id="logoutBtn"
+style="display:none;">
+Выйти
+</button>
+
+<button
+id="saveBtn"
+style="display:none;">
+Сохранить
+</button>
+
+<button
+id="changePasswordBtn"
+style="display:none;">
+Пароль
+</button>
+
+</div> 
+
+<!-- MAIN GALLERY -->
+
+<section class="gallery" id="gallery"></section>
+
+<!-- WINNERS -->
+
+<div id="winnersSection"></div>
+
+<header>
+
+<h1>
+Работы — победители конкурсов
+</h1>
+
+<p>
+Лучшие работы учеников
+</p>
+
+</header>
+
+<section class="gallery" id="winnersGallery"></section>
+
+</div>
+
+<!-- MODAL -->
+
+<div class="modal" id="modal">
+
+<div class="modal-content glass">
+
+<img id="modalImg">
+
+<div class="modal-info">
+
+<h2 id="modalTitle"></h2>
+
+<div class="author" id="modalAuthor"></div>
+
+<div class="class" id="modalClass"></div>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- SETTINGS -->
+
+<div id="settingsPanel" class="panel glass draggable">
+
+<h3>Темы сайта</h3>
+
+<select id="themeSelect">
+
+<option value="default">Default</option>
+<option value="dark">Dark</option>
+<option value="ocean">Ocean</option>
+<option value="neon">Neon</option>
+<option value="sakura">Sakura</option>
+
+</select>
+
+<input
+type="color"
+id="accentPicker"
+value="#7b61ff">
+
+<input
+type="file"
+id="backgroundUpload"
+accept=".png,.jpg,.jpeg,.webp,image/*">
+
+<button id="setBackgroundBtn">
+Установить фон
+</button>
+
+<button id="removeBackgroundBtn">
+Убрать фон
+</button>
+
+</div>
+
+<!-- UPLOAD -->
+
+<div id="uploadPanel" class="panel glass draggable">
+
+<h3>Добавить работу</h3>
+
+<input
+type="file"
+id="imageUpload"
+accept=".png,.jpg,.jpeg,.webp,image/*">
+
+<input
+type="text"
+id="titleInput"
+placeholder="Название">
+
+<input
+type="text"
+id="authorInput"
+placeholder="Автор">
+
+<input
+type="text"
+id="classInput"
+placeholder="Класс">
+
+<select id="gallerySelect">
+
+<option value="main">
+Обычная галерея
+</option>
+
+<option value="winners">
+Победители конкурсов
+</option>
+
+</select>
+
+<button id="addBtn">
+Добавить
+</button>
+
+</div>
+
+<!-- FREE UPLOAD -->
+
+<div id="freeUploadPanel" class="panel glass draggable">
+
+<h3>Свободная загрузка</h3>
+
+<input
+type="file"
+id="freeImageUpload"
+accept=".png,.jpg,.jpeg,.webp,image/*">
+
+<button id="addFreeImageBtn">
+Добавить изображение
+</button>
+
+</div>
+
+<div id="freeImagesContainer"></div>
+
+<script>
+
+let adminMode = false;
+
+let currentPassword =
+localStorage.getItem("adminPassword")
+|| "12345";
+
+const gallery =
+document.getElementById("gallery");
+
+const winnersGallery =
+document.getElementById("winnersGallery");
+
+/* MENU */
+
+const menuBtn =
+document.getElementById("menuBtn");
+
+const menuPanel =
+document.getElementById("menuPanel");
+
+menuBtn.onclick = ()=>{
+
+menuPanel.style.display =
+menuPanel.style.display === "flex"
+? "none"
+: "flex";
+
+};
+
+document.getElementById("openMain")
+.onclick = ()=>{
+
+gallery.style.display = "grid";
+
+document.getElementById(
+"winnersSection"
+).style.display = "none";
+
+};
+
+document.getElementById("openWinners")
+.onclick = ()=>{
+
+gallery.style.display = "none";
+
+document.getElementById(
+"winnersSection"
+).style.display = "block";
+
+};
+
+/* DRAG */
+
+function enableDrag(element){
+
+let isDragging = false;
+
+let startX;
+let startY;
+
+element.addEventListener(
+"mousedown",
+(e)=>{
+
+if(!adminMode) return;
+
+isDragging = true;
+
+startX =
+e.clientX - element.offsetLeft;
+
+startY =
+e.clientY - element.offsetTop;
+
+});
+
+document.addEventListener(
+"mousemove",
+(e)=>{
+
+if(!isDragging) return;
+
+element.style.left =
+e.clientX - startX + "px";
+
+element.style.top =
+e.clientY - startY + "px";
+
+element.style.right = "auto";
+element.style.bottom = "auto";
+
+});
+
+document.addEventListener(
+"mouseup",
+()=>{
+
+isDragging = false;
+
+});
+
+}
+
+document
+.querySelectorAll(".draggable")
+.forEach(enableDrag);
+
+/* CREATE CARD */
+
+function createCard(data,target){
+
+const card =
+document.createElement("div");
+
+card.className =
+"card glass";
+
+card.innerHTML = `
+
+<button class="delete-btn">✕</button>
+
+<img src="${data.image}">
+
+<div class="info">
+
+<h2>${data.title}</h2>
+
+<div class="author">
+${data.author}
+</div>
+
+<div class="class">
+${data.className}
+</div>
+
+</div>
+
+`;
+
+target.appendChild(card);
+
+activateCard(card);
+
+}
+
+/* ACTIVATE */
+
+function activateCard(card){
+
+card.addEventListener("click",()=>{
+
+document.getElementById(
+"modalImg"
+).src =
+card.querySelector("img").src;
+
+document.getElementById(
+"modalTitle"
+).innerText =
+card.querySelector("h2").innerText;
+
+document.getElementById(
+"modalAuthor"
+).innerText =
+card.querySelector(".author").innerText;
+
+document.getElementById(
+"modalClass"
+).innerText =
+card.querySelector(".class").innerText;
+
+document.getElementById(
+"modal"
+).classList.add("active");
+
+});
+
+const deleteBtn =
+card.querySelector(".delete-btn");
+
+if(adminMode){
+
+deleteBtn.style.display = "block";
+
+}
+
+deleteBtn.addEventListener(
+"click",
+(e)=>{
+
+e.stopPropagation();
+
+card.remove();
+
+saveAll();
+
+});
+
+}
+
+document.getElementById("modal")
+.onclick = ()=>{
+
+document.getElementById(
+"modal"
+).classList.remove("active");
+
+};
+
+/* LOGIN */
+
+document.getElementById("loginBtn")
+.onclick = ()=>{
+
+const password =
+document.getElementById(
+"adminPassword"
+).value;
+
+if(password === currentPassword){
+
+adminMode = true;
+
+document.getElementById(
+"settingsPanel"
+).style.display = "block";
+
+document.getElementById(
+"uploadPanel"
+).style.display = "block";
+
+document.getElementById(
+"freeUploadPanel"
+).style.display = "block";
+
+document
+.querySelectorAll(".delete-btn")
+.forEach(btn=>{
+
+btn.style.display = "block";
+
+});
+
+document.getElementById(
+"logoutBtn"
+).style.display = "block";
+
+document.getElementById(
+"saveBtn"
+).style.display = "block";
+
+document.getElementById(
+"changePasswordBtn"
+).style.display = "block";
+
+alert("Админ режим включён");
+
+}else{
+
+alert("Неверный пароль");
+
+}
+
+};
+
+/* LOGOUT */
+
+document.getElementById("logoutBtn")
+.onclick = ()=>{
+
+adminMode = false;
+
+document.getElementById(
+"settingsPanel"
+).style.display = "none";
+
+document.getElementById(
+"uploadPanel"
+).style.display = "none";
+
+document.getElementById(
+"freeUploadPanel"
+).style.display = "none";
+
+document
+.querySelectorAll(".delete-btn")
+.forEach(btn=>{
+
+btn.style.display = "none";
+
+});
+
+};
+
+/* PASSWORD */
+
+document.getElementById(
+"changePasswordBtn"
+).onclick = ()=>{
+
+const newPassword =
+prompt("Введите новый пароль");
+
+if(!newPassword) return;
+
+localStorage.setItem(
+"adminPassword",
+newPassword
+);
+
+currentPassword = newPassword;
+
+alert("Пароль изменён");
+
+};
+
+/* ADD WORK */
+
+document.getElementById("addBtn")
+.onclick = ()=>{
+
+const file =
+document.getElementById(
+"imageUpload"
+).files[0];
+
+if(!file){
+
+alert("Выберите файл");
+
+return;
+
+}
+
+const reader =
+new FileReader();
+
+reader.onload = (e)=>{
+
+const data = {
+
+title:
+document.getElementById(
+"titleInput"
+).value,
+
+author:
+document.getElementById(
+"authorInput"
+).value,
+
+className:
+document.getElementById(
+"classInput"
+).value,
+
+image:e.target.result
+
+};
+
+if(
+document.getElementById(
+"gallerySelect"
+).value === "main"
+){
+
+createCard(data,gallery);
+
+}else{
+
+createCard(data,winnersGallery);
+
+}
+
+saveAll();
+
+};
+
+reader.readAsDataURL(file);
+
+};
+
+/* FREE IMAGE */
+
+document.getElementById(
+"addFreeImageBtn"
+).onclick = ()=>{
+
+const file =
+document.getElementById(
+"freeImageUpload"
+).files[0];
+
+if(!file) return;
+
+const reader =
+new FileReader();
+
+reader.onload = (e)=>{
+
+const wrapper =
+document.createElement("div");
+
+wrapper.className =
+"free-image-wrapper";
+
+wrapper.style.left = "100px";
+wrapper.style.top = "100px";
+
+const image =
+document.createElement("img");
+
+image.src = e.target.result;
+
+image.className =
+"free-image";
+
+const deleteBtn =
+document.createElement("button");
+
+deleteBtn.innerText = "✕";
+
+deleteBtn.className =
+"delete-btn";
+
+deleteBtn.style.display =
+"block";
+
+deleteBtn.onclick = ()=>{
+
+wrapper.remove();
+
+saveAll();
+
+};
+
+const resize =
+document.createElement("div");
+
+resize.className =
+"resize-handle";
+
+let resizing = false;
+
+resize.addEventListener(
+"mousedown",
+()=>{
+
+resizing = true;
+
+});
+
+document.addEventListener(
+"mousemove",
+(e)=>{
+
+if(!resizing) return;
+
+const rect =
+wrapper.getBoundingClientRect();
+
+image.style.width =
+e.clientX - rect.left + "px";
+
+});
+
+document.addEventListener(
+"mouseup",
+()=>{
+
+resizing = false;
+
+});
+
+wrapper.appendChild(image);
+wrapper.appendChild(deleteBtn);
+wrapper.appendChild(resize);
+
+document.getElementById(
+"freeImagesContainer"
+).appendChild(wrapper);
+
+enableDrag(wrapper);
+
+saveAll();
+
+};
+
+reader.readAsDataURL(file);
+
+};
+
+/* THEME */
+
+addEventListener("change",(e)=>{
+
+/* Удаляем только theme-классы */
+
+document.body.classList.remove(
+"theme-dark",
+"theme-ocean",
+"theme-neon",
+"theme-sakura"
+);
+
+/* Добавляем новую тему */
+
+if(e.target.value !== "default"){
+
+document.body.classList.add(
+"theme-" + e.target.value
+);
+
+}
+
+/* Сохраняем тему */
+
+localStorage.setItem(
+"savedTheme",
+document.body.className
+);
+
+});
+/* ACCENT */
+
+document.getElementById(
+"accentPicker"
+).oninput = (e)=>{
+
+document.documentElement
+.style.setProperty(
+"--accent",
+e.target.value
+);
+
+};
+
+/* BACKGROUND */
+
+document.getElementById(
+"setBackgroundBtn"
+).onclick = ()=>{
+
+const file =
+document.getElementById(
+"backgroundUpload"
+).files[0];
+
+if(!file) return;
+
+const reader =
+new FileReader();
+
+reader.onload = (e)=>{
+
+document.body.style.backgroundImage =
+`url(${e.target.result})`;
+
+document.body.classList.add(
+"custom-background"
+);
+
+};
+
+reader.readAsDataURL(file);
+
+};
+
+document.getElementById(
+"removeBackgroundBtn"
+).onclick = ()=>{
+
+document.body.style.backgroundImage =
+"none";
+
+};
+
+/* SAVE */
+
+function saveAll(){
+
+localStorage.setItem(
+"galleryHTML",
+gallery.innerHTML
+);
+
+localStorage.setItem(
+"winnersHTML",
+winnersGallery.innerHTML
+);
+
+localStorage.setItem(
+"freeImagesHTML",
+document.getElementById(
+"freeImagesContainer"
+).innerHTML
+);
+
+}
+
+document.getElementById(
+"saveBtn"
+).onclick = ()=>{
+
+saveAll();
+
+alert("Сохранено");
+
+};
+
+/* LOAD */
+
+window.onload = ()=>{
+
+const savedGallery =
+localStorage.getItem(
+"galleryHTML"
+);
+
+if(savedGallery){
+
+gallery.innerHTML = savedGallery;
+
+gallery
+.querySelectorAll(".card")
+.forEach(activateCard);
+
+}
+
+const savedWinners =
+localStorage.getItem(
+"winnersHTML"
+);
+
+if(savedWinners){
+
+winnersGallery.innerHTML =
+savedWinners;
+
+winnersGallery
+.querySelectorAll(".card")
+.forEach(activateCard);
+
+}
+
+};
+/* ===== AUTO SAVE ===== */
+
+function autoSaveSite(){
+
+localStorage.setItem(
+"galleryHTML",
+gallery.innerHTML
+);
+
+localStorage.setItem(
+"winnersHTML",
+winnersGallery.innerHTML
+);
+
+localStorage.setItem(
+"freeImagesHTML",
+document.getElementById(
+"freeImagesContainer"
+).innerHTML
+);
+
+/* THEME */
+
+const themeSelect =
+document.getElementById("themeSelect");
+
+/* ===== APPLY THEME ===== */
+
+function applyTheme(theme){
+
+document.body.classList.remove(
+"theme-dark",
+"theme-ocean",
+"theme-neon",
+"theme-sakura",
+"theme-minimal"
+);
+
+/* ===== DEFAULT ===== */
+
+if(theme === "default"){
+
+const prefersDark =
+window.matchMedia(
+"(prefers-color-scheme: dark)"
+).matches;
+
+if(prefersDark){
+
+document.body.classList.add(
+"theme-dark"
+);
+
+}
+
+}else{
+
+document.body.classList.add(
+"theme-" + theme
+);
+
+}
+
+}
+
+/* ===== CHANGE ===== */
+
+themeSelect.addEventListener(
+"change",
+(e)=>{
+
+const selectedTheme =
+e.target.value;
+
+applyTheme(selectedTheme);
+
+/* SAVE FOR EVERYONE */
+
+localStorage.setItem(
+"globalTheme",
+selectedTheme
+);
+
+});
+
+/* ===== LOAD ===== */
+
+const savedTheme =
+localStorage.getItem(
+"globalTheme"
+) || "default";
+
+themeSelect.value = savedTheme;
+
+applyTheme(savedTheme);
+
+/* BACKGROUND */
+
+localStorage.setItem(
+"savedBackground",
+document.body.style.backgroundImage
+);
+
+/* ACCENT */
+
+localStorage.setItem(
+"savedAccent",
+getComputedStyle(
+document.documentElement
+).getPropertyValue("--accent")
+);
+
+/* PANELS */
+
+document
+.querySelectorAll(".panel")
+.forEach(panel=>{
+
+const id = panel.id;
+
+const panelData = {
+
+left:panel.style.left,
+top:panel.style.top,
+right:panel.style.right,
+bottom:panel.style.bottom
+
+};
+
+localStorage.setItem(
+"panel_" + id,
+JSON.stringify(panelData)
+);
+
+});
+
+}
+
+/* ===== LOAD SAVED DATA ===== */
+
+window.addEventListener("load",()=>{
+
+/* THEME */
+
+const savedTheme =
+localStorage.getItem(
+"savedTheme"
+);
+
+if(savedTheme){
+
+document.body.className =
+savedTheme;
+
+}
+
+/* BACKGROUND */
+
+const savedBackground =
+localStorage.getItem(
+"savedBackground"
+);
+
+if(savedBackground){
+
+document.body.style.backgroundImage =
+savedBackground;
+
+}
+
+/* ACCENT */
+
+const savedAccent =
+localStorage.getItem(
+"savedAccent"
+);
+
+if(savedAccent){
+
+document.documentElement
+.style.setProperty(
+"--accent",
+savedAccent
+);
+
+}
+
+/* FREE IMAGES */
+
+const freeImages =
+localStorage.getItem(
+"freeImagesHTML"
+);
+
+if(freeImages){
+
+document.getElementById(
+"freeImagesContainer"
+).innerHTML =
+freeImages;
+
+}
+
+/* PANEL POSITIONS */
+
+document
+.querySelectorAll(".panel")
+.forEach(panel=>{
+
+const saved =
+localStorage.getItem(
+"panel_" + panel.id
+);
+
+if(saved){
+
+const data =
+JSON.parse(saved);
+
+panel.style.left =
+data.left;
+
+panel.style.top =
+data.top;
+
+panel.style.right =
+data.right;
+
+panel.style.bottom =
+data.bottom;
+
+}
+
+});
+
+});
+
+/* SAVE EVERY CHANGE */
+
+setInterval(()=>{
+
+autoSaveSite();
+
+},2000);
+</script>
+
+</body>
+</html>
