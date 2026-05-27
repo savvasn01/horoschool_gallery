@@ -577,7 +577,7 @@ accept=".png,.jpg,.jpeg,.webp,image/*">
 
 let adminMode = false;
 
-let currentPassword = "15243";
+let currentPassword = localStorage.getItem("sitePassword") || "15243";
 
 const gallery =
 document.getElementById("gallery");
@@ -784,8 +784,8 @@ document.getElementById(
 
 /* LOGIN */
 
-document.getElementById("loginBtn")
-.onclick = ()=>{
+document.getElementById("loginBtn").onclick = async () => {
+  await window.firebaseReady;
 
 const password =
 document.getElementById(
@@ -879,11 +879,18 @@ prompt("Введите новый пароль");
 if(!newPassword) return;
 
 
-
 currentPassword = newPassword;
 
-alert("Пароль изменён");
+document.getElementById("changePasswordBtn").onclick = () => {
+  const newPassword = prompt("Введите новый пароль");
+  if (!newPassword) return;
 
+  currentPassword = newPassword;
+
+  // сохраняем общий пароль (для всех устройств в этом браузере/сайте)
+  localStorage.setItem("sitePassword", newPassword);
+
+  alert("Пароль изменён");
 };
 
 /* ADD WORK */
@@ -1515,6 +1522,39 @@ autoSaveSite();
 
 },2000);
 </script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+const firebaseConfig = {
+  apiKey: "...",
+  authDomain: "...",
+  projectId: "...",
+  storageBucket: "...",
+  messagingSenderId: "...",
+  appId: "..."
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.db = db;
+window.doc = doc;
+window.getDoc = getDoc;
+window.setDoc = setDoc;
+async function loadPassword() {
+  const ref = doc(db, "site", "password");
+  const snap = await getDoc(ref);
+
+  if (snap.exists()) {
+    currentPassword = snap.data().value;
+  } else {
+    currentPassword = "15243";
+    await setDoc(ref, { value: "15243" });
+  }
+}
+
+window.firebaseReady = loadPassword();
+</script>
 </body>
 </html>
