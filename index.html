@@ -577,9 +577,7 @@ accept=".png,.jpg,.jpeg,.webp,image/*">
 
 let adminMode = false;
 
-let currentPassword =
-localStorage.getItem("adminPassword")
-|| "12345";
+let currentPassword = "12345";
 
 const gallery =
 document.getElementById("gallery");
@@ -880,10 +878,7 @@ prompt("Введите новый пароль");
 
 if(!newPassword) return;
 
-localStorage.setItem(
-"adminPassword",
-newPassword
-);
+
 
 currentPassword = newPassword;
 
