@@ -1111,7 +1111,61 @@ e.target.value
 );
 
 };
+document
+.getElementById("logoutBtn")
+.addEventListener("click",()=>{
 
+adminMode = false;
+
+/* СКРЫТЬ АДМИН ПАНЕЛИ */
+
+document.getElementById(
+"settingsPanel"
+).style.display = "none";
+
+document.getElementById(
+"uploadPanel"
+).style.display = "none";
+
+document.getElementById(
+"freeUploadPanel"
+).style.display = "none";
+
+/* СКРЫТЬ АДМИН КНОПКИ */
+
+document.getElementById(
+"logoutBtn"
+).style.display = "none";
+
+document.getElementById(
+"saveBtn"
+).style.display = "none";
+
+document.getElementById(
+"changePasswordBtn"
+).style.display = "none";
+
+/* ПОКАЗАТЬ ВХОД */
+
+document.getElementById(
+"loginBtn"
+).style.display = "block";
+
+document.getElementById(
+"adminPassword"
+).style.display = "block";
+
+/* СКРЫТЬ DELETE */
+
+document
+.querySelectorAll(".delete-btn")
+.forEach(btn=>{
+
+btn.style.display = "none";
+
+});
+
+});
 /* BACKGROUND */
 
 document.getElementById(
